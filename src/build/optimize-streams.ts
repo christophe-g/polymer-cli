@@ -38,10 +38,17 @@ export type FileCB = (error?: any, file?: File) => void;
 export type CSSOptimizeOptions = {
   stripWhitespace?: boolean;
 };
+type JsCompileTarget = 'es5' | 'es2015' | 'es2016' | 'es2017' | 'es2018';
+
 export interface OptimizeOptions {
-  html?: {minify?: boolean};
-  css?: {minify?: boolean};
-  js?: {minify?: boolean, compile?: boolean, ignore?: string[]};
+  html?: {minify?: boolean | {exclude?: string[]}};
+  css?: {minify?: boolean | {exclude?: string[]}};
+  js?: {minify?: any, compile?: boolean 
+    | JsCompileTarget
+    |{
+      target?: JsCompileTarget;
+      exclude?: string[],
+    }};
 }
 ;
 
@@ -218,8 +225,8 @@ export function getOptimizeStreams(options?: OptimizeOptions):
         /\.html$/, new InlineCSSOptimizeTransform({stripWhitespace: true})));
   }
   if (options.js && options.js.minify) {
-    if (options.js.ignore) {
-      const ignores = options.js.ignore;
+    const ignores = options.js.minify.exclude;
+    if (ignores && ignores.length) {
 
       function condition(file: File): boolean {
         for (const ignore of ignores) {
