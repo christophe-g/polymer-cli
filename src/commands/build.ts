@@ -167,10 +167,18 @@ export class BuildCommand implements Command {
     }
 
     logger.info(`Clearing ${mainBuildDirectoryName}${path.sep} directory...`);
-    await del([mainBuildDirectoryName]);
+    if(config.builds) {
+      await Promise.all(config.builds.map(async (buildOptions) => await del([`${mainBuildDirectoryName}${path.sep}${buildOptions.name}${path.sep}`])))
+    } else {
+      await del([mainBuildDirectoryName]);
+    }
 
     const mzfs = require('mz/fs') as typeof mzfsTypeOnly;
-    await mzfs.mkdir(mainBuildDirectoryName);
+    try {
+      await mzfs.mkdir(mainBuildDirectoryName);
+    } catch (error) {
+      // don't throw it the directory already exists
+    }
 
     const polymerProject = new PolymerProject(config);
 
